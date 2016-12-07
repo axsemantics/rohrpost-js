@@ -9,6 +9,6 @@ node_modules
 public
 dist
 
-config.dev.js
+config.testing.js
 .publish
 .idea

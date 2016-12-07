@@ -4,13 +4,14 @@ const sinonChai = require('sinon-chai')
 const should = chai.should()
 chai.use(sinonChai)
 
+const config = require('../config.testing')
 const RohrpostClient = require('../')
 
 const WS_URL = 'wss://api-stage.ax-semantics.com/ws/rohrpost/'
 let client = null
 describe('Rohrpost Client', () => {
 	it('should connect', (done) => {
-		client = new RohrpostClient(WS_URL, {pingInterval: 500})
+		client = new RohrpostClient(WS_URL, {pingInterval: 500, token: config.jwt})
 		client.once('open', done)
 	})
 	it('should ping', (done) => {
@@ -24,4 +25,7 @@ describe('Rohrpost Client', () => {
 		}
 		count()
 	}).timeout(1500)
+	it('should subscribe', (done) => {
+		client.subscribe({type:'collection', id: 52})
+	})
 })
