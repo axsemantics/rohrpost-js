@@ -1,0 +1,28 @@
+{
+  "name": "rohrpost-client",
+  "version": "0.0.0",
+  "description": "Rohrpost Client for the Browser",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha test/*.test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/aexeagmbh/rohrpost-js-client.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/aexeagmbh/rohrpost-js-client/issues"
+  },
+  "homepage": "https://github.com/aexeagmbh/rohrpost-js-client#readme",
+  "dependencies": {
+    "ws": "^1.1.1"
+  },
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "mocha": "^3.2.0",
+    "sinon": "^1.17.6",
+    "sinon-chai": "^2.8.0"
+  }
+}
