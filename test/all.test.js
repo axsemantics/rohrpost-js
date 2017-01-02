@@ -39,4 +39,9 @@ describe('Rohrpost Client', () => {
 	it('should subscribe', (done) => {
 		client.subscribe({type:'collection', id: 52}).then(done)
 	})
+	it('should reject bad subscription', (done) => {
+		client.subscribe({type: 'INVALID'})
+			.then(() => { done('should reject') })
+			.catch(() => { done() })
+	})
 })

@@ -65,7 +65,7 @@ module.exports = class RohrpostClient extends EventEmitter {
 	_processMessage (rawMessage) {
 		const message = JSON.parse(rawMessage.data)
 		if(message.error) {
-			this.emit('error', message.error)
+			// this.emit('error', message.error)
 			this._resolveRequest(message.id, message.error)
 			return
 		}
@@ -113,7 +113,7 @@ module.exports = class RohrpostClient extends EventEmitter {
 		} else {
 			this._openRequests[id] = undefined
 			if (error) {
-				deferred.reject(eror)
+				deferred.reject(error)
 			} else {
 				deferred.resolve()
 			}

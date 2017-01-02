@@ -34,7 +34,7 @@ const mock = {
 			type: 'subscribe',
 			id: message.id
 		}
-		if (!mock.checkAuth(message)) {
+		if (!mock.checkAuth(message) || message.data.type === 'INVALID') {
 			response.error = "ACCESS_DENIED"
 		} else {
 			response.success = true
