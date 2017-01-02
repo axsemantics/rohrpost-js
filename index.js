@@ -1,6 +1,15 @@
 const EventEmitter = require('events')
 const Websocket = require('ws')
 
+const defer = function () {
+	const deferred = {}
+	deferred.promise = new Promise(function (resolve, reject) {
+		deferred.resolve = resolve
+		deferred.reject = reject
+	})
+	return deferred
+}
+
 module.exports = class RohrpostClient extends EventEmitter {
 	constructor (url, config) {
 		super()
@@ -10,7 +19,7 @@ module.exports = class RohrpostClient extends EventEmitter {
 		}
 		this.config = Object.assign(defaultConfig, config)
 		this._socket = new Websocket(url)
-		this.pingState = {
+		this._pingState = {
 			latestPong: 0,
 			
 		}
@@ -20,7 +29,8 @@ module.exports = class RohrpostClient extends EventEmitter {
 			this.ping()
 		})
 
-		this._socket.addEventListener('message', this.processMessage.bind(this))
+		this._socket.addEventListener('message', this._processMessage.bind(this))
+		this._openRequests = {} // save deferred promises from requests waiting for reponse
 	}
 	
 	ping () {
@@ -32,47 +42,81 @@ module.exports = class RohrpostClient extends EventEmitter {
 		}
 		this._socket.send(JSON.stringify(payload))
 		setTimeout(() => {
-			if (timestamp > this.pingState.latestPong) // we received no pong after the last ping
-				this.handleTimeout()
+			if (timestamp > this._pingState.latestPong) // we received no pong after the last ping
+				this._handleTimeout()
 			else this.ping()
 		}, this.config.pingInterval)
 	}
 	
 	subscribe(channel) {
-		const timestamp = Date.now()
+		const {id, promise} = this._createRequest()
 		const payload = {
 			type: 'subscribe',
-			id: timestamp,
+			id,
 			auth_jwt: this.config.token,
 			data: channel
 		}
 		this._socket.send(JSON.stringify(payload))
+		return promise
 	}
 	
-	processMessage (message) {
-		const data = JSON.parse(message.data)
-		if(data.error) {
-			this.emit(data.error)
-			console.error(data.error)
+	// INTERNALS
+	
+	_processMessage (rawMessage) {
+		const message = JSON.parse(rawMessage.data)
+		if(message.error) {
+			this.emit('error', message.error)
+			this._resolveRequest(message.id, message.error)
 			return
 		}
-		this.emit('message', data)
+		this.emit('message', message)
 		
 		const typeHandlers = {
-			pong: this.handlePong.bind(this)
+			pong: this._handlePong.bind(this),
+			subscribe: this._handleSubscribe.bind(this)
 		}
 		
-		typeHandlers[data.type](message, data)
+		if(typeHandlers[message.type] === undefined) {
+			this.emit('error', `incoming message type "${message.type}" not recognized`)
+		} else {
+			typeHandlers[message.type](message)
+		}
+		
 	}
 	
-	handlePong (message, data) {
+	_handlePong (message) {
 		this.emit('pong')
-		this.pingState.latestPong = Date.now()
+		this._pingState.latestPong = Date.now()
 	}
 	
-	handleTimeout () {
+	_handleSubscribe (message) {
+		this._resolveRequest(message.id)
+	}
+	
+	_handleTimeout () {
 		this._socket.close()
 		this.emit('close')
 	}
 	
+	// request - response promise matching
+	_createRequest () {
+		const id = Date.now()
+		const deferred = defer()
+		this._openRequests[id] = deferred
+		return {id, promise: deferred.promise}
+	}
+	
+	_resolveRequest (id, error) {
+		const deferred = this._openRequests[id]
+		if(!deferred) {
+			this.emit('error', `no saved request with id: ${id}`)
+		} else {
+			this._openRequests[id] = undefined
+			if (error) {
+				deferred.reject(eror)
+			} else {
+				deferred.resolve()
+			}
+		}
+	}
 }

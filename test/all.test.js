@@ -19,8 +19,11 @@ describe('Rohrpost Client', () => {
 		}, done)
 	})
 	it('should connect', (done) => {
-		client = new RohrpostClient(WS_URL, {pingInterval: 500, token: config.jwt})
+		client = new RohrpostClient(WS_URL, {pingInterval: 500, token: 'hunter2'})
 		client.once('open', done)
+		client.on('error', (error) => {
+			throw new Error(error) // let us hear the screams
+		})
 	})
 	it('should ping', (done) => {
 		let counter = 0
@@ -33,7 +36,7 @@ describe('Rohrpost Client', () => {
 		}
 		count()
 	}).timeout(1500)
-	// it('should subscribe', (done) => {
-	// 	client.subscribe({type:'collection', id: 52})
-	// })
+	it('should subscribe', (done) => {
+		client.subscribe({type:'collection', id: 52}).then(done)
+	})
 })
