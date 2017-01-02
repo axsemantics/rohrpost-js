@@ -50,7 +50,6 @@ module.exports = class RohrpostClient extends EventEmitter {
 	}
 	
 	processMessage (message) {
-		console.log(message.data)
 		const data = JSON.parse(message.data)
 		if(data.error) {
 			this.emit(data.error)
