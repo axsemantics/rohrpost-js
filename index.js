@@ -28,12 +28,20 @@ module.exports = class RohrpostClient extends EventEmitter {
 			// start pinging
 			this._ping()
 		})
+		
+		this._socket.addEventListener('close', () => {
+			this.emit('closed') // why past tense? because the socket is already closed and not currently closing
+		})
 
 		this._socket.addEventListener('message', this._processMessage.bind(this))
 		this._openRequests = {} // save deferred promises from requests waiting for reponse
 	}
 	
-	subscribe(channel) {
+	close () {
+		this._socket.close()
+	}
+	
+	subscribe (channel) {
 		const {id, promise} = this._createRequest()
 		const payload = {
 			type: 'subscribe',
@@ -45,7 +53,7 @@ module.exports = class RohrpostClient extends EventEmitter {
 		return promise
 	}
 	
-	unsubscribe(channel) { // glorious copypasta
+	unsubscribe (channel) { // glorious copypasta
 		const {id, promise} = this._createRequest()
 		const payload = {
 			type: 'unsubscribe',
@@ -62,13 +70,15 @@ module.exports = class RohrpostClient extends EventEmitter {
 	// ===========================================================================
 	
 	_ping () {
-		this.emit('ping')
+		if (this._socket.readyState !== 1) // socket still open?
+			return
 		const timestamp = Date.now()
 		const payload = {
 			type: 'ping',
 			id: timestamp
 		}
 		this._socket.send(JSON.stringify(payload))
+		this.emit('ping')
 		setTimeout(() => {
 			if (timestamp > this._pingState.latestPong) // we received no pong after the last ping
 				this._handlePingTimeout()
@@ -78,7 +88,7 @@ module.exports = class RohrpostClient extends EventEmitter {
 	
 	_handlePingTimeout () {
 		this._socket.close()
-		this.emit('close')
+		this.emit('closed')
 	}
 	
 	_processMessage (rawMessage) {

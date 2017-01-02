@@ -47,4 +47,18 @@ describe('Rohrpost Client', () => {
 	it('should unsubscribe', (done) => {
 		client.unsubscribe({type:'collection', id: 52}).then(done)
 	})
+	it('should detect timeouts', (done) => {
+		client.once('closed', done)
+		server.drop = true
+	})
+	it('should close when server closes', (done) => {
+		client = new RohrpostClient(WS_URL, {pingInterval: 500, token: 'hunter2'})
+		client.once('open', () => server.killAll())
+		client.once('closed', done)
+	})
+	it('should close itself', (done) => {
+		client = new RohrpostClient(WS_URL, {pingInterval: 500, token: 'hunter2'})
+		client.once('open', () => client.close())
+		client.once('closed', done)
+	})
 })

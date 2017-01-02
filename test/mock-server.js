@@ -4,13 +4,20 @@ const expect = chai.expect
 
 const mock = {
 	server: null,
+	drop: false,
 	init (options, cb) {
-		mock.server = new Websocket.Server({port: options.port}, cb)
+		mock.server = new Websocket.Server({port: options.port, clientTracking: true}, cb)
 		mock.server.on('connection', (socket) => {
 			socket.on('message', mock.handleMessage.bind(this, socket))
 		})
 	},
+	killAll () {
+		for (let client of mock.server.clients) {
+			client.close()
+		}
+	},
 	handleMessage (socket, rawMessage) {
+		if (mock.drop) return // fall silent
 		const message = JSON.parse(rawMessage)
 		expect(message).to.contain.all.keys('id', 'type')
 		const handlers = {
