@@ -26,26 +26,11 @@ module.exports = class RohrpostClient extends EventEmitter {
 		this._socket.addEventListener('open', () => {
 			this.emit('open')
 			// start pinging
-			this.ping()
+			this._ping()
 		})
 
 		this._socket.addEventListener('message', this._processMessage.bind(this))
 		this._openRequests = {} // save deferred promises from requests waiting for reponse
-	}
-	
-	ping () {
-		this.emit('ping')
-		const timestamp = Date.now()
-		const payload = {
-			type: 'ping',
-			id: timestamp
-		}
-		this._socket.send(JSON.stringify(payload))
-		setTimeout(() => {
-			if (timestamp > this._pingState.latestPong) // we received no pong after the last ping
-				this._handleTimeout()
-			else this.ping()
-		}, this.config.pingInterval)
 	}
 	
 	subscribe(channel) {
@@ -72,7 +57,29 @@ module.exports = class RohrpostClient extends EventEmitter {
 		return promise
 	}
 	
+	// ===========================================================================
 	// INTERNALS
+	// ===========================================================================
+	
+	_ping () {
+		this.emit('ping')
+		const timestamp = Date.now()
+		const payload = {
+			type: 'ping',
+			id: timestamp
+		}
+		this._socket.send(JSON.stringify(payload))
+		setTimeout(() => {
+			if (timestamp > this._pingState.latestPong) // we received no pong after the last ping
+				this._handlePingTimeout()
+			else this._ping()
+		}, this.config.pingInterval)
+	}
+	
+	_handlePingTimeout () {
+		this._socket.close()
+		this.emit('close')
+	}
 	
 	_processMessage (rawMessage) {
 		const message = JSON.parse(rawMessage.data)
@@ -108,11 +115,6 @@ module.exports = class RohrpostClient extends EventEmitter {
 	
 	_handleUnsubscribe (message) {
 		this._resolveRequest(message.id)
-	}
-	
-	_handleTimeout () {
-		this._socket.close()
-		this.emit('close')
 	}
 	
 	// request - response promise matching
