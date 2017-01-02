@@ -60,6 +60,18 @@ module.exports = class RohrpostClient extends EventEmitter {
 		return promise
 	}
 	
+	unsubscribe(channel) { // glorious copypasta
+		const {id, promise} = this._createRequest()
+		const payload = {
+			type: 'unsubscribe',
+			id,
+			auth_jwt: this.config.token,
+			data: channel
+		}
+		this._socket.send(JSON.stringify(payload))
+		return promise
+	}
+	
 	// INTERNALS
 	
 	_processMessage (rawMessage) {
@@ -73,7 +85,8 @@ module.exports = class RohrpostClient extends EventEmitter {
 		
 		const typeHandlers = {
 			pong: this._handlePong.bind(this),
-			subscribe: this._handleSubscribe.bind(this)
+			subscribe: this._handleSubscribe.bind(this),
+			unsubscribe: this._handleUnsubscribe.bind(this)
 		}
 		
 		if(typeHandlers[message.type] === undefined) {
@@ -90,6 +103,10 @@ module.exports = class RohrpostClient extends EventEmitter {
 	}
 	
 	_handleSubscribe (message) {
+		this._resolveRequest(message.id)
+	}
+	
+	_handleUnsubscribe (message) {
 		this._resolveRequest(message.id)
 	}
 	

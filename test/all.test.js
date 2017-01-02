@@ -44,4 +44,7 @@ describe('Rohrpost Client', () => {
 			.then(() => { done('should reject') })
 			.catch(() => { done() })
 	})
+	it('should unsubscribe', (done) => {
+		client.unsubscribe({type:'collection', id: 52}).then(done)
+	})
 })

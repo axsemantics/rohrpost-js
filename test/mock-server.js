@@ -15,7 +15,8 @@ const mock = {
 		expect(message).to.contain.all.keys('id', 'type')
 		const handlers = {
 			ping: mock.handlePing,
-			subscribe: mock.handleSubscribe
+			subscribe: mock.handleSubscribe,
+			unsubscribe: mock.handleUnsubscribe
 		}
 		
 		handlers[message.type](socket, message)
@@ -32,6 +33,20 @@ const mock = {
 		expect(message).to.contain.all.keys('auth_jwt', 'data')
 		const response = {
 			type: 'subscribe',
+			id: message.id
+		}
+		if (!mock.checkAuth(message) || message.data.type === 'INVALID') {
+			response.error = "ACCESS_DENIED"
+		} else {
+			response.success = true
+		}
+		
+		socket.send(JSON.stringify(response))
+	},
+	handleUnsubscribe (socket, message) { // glorious copypasta
+		expect(message).to.contain.all.keys('auth_jwt', 'data')
+		const response = {
+			type: 'unsubscribe',
 			id: message.id
 		}
 		if (!mock.checkAuth(message) || message.data.type === 'INVALID') {
