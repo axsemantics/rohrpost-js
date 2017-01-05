@@ -41,25 +41,25 @@ module.exports = class RohrpostClient extends EventEmitter {
 		this._socket.close()
 	}
 	
-	subscribe (channel) {
+	subscribe (group) {
 		const {id, promise} = this._createRequest()
 		const payload = {
 			type: 'subscribe',
 			id,
 			auth_jwt: this.config.token,
-			data: channel
+			data: group
 		}
 		this._socket.send(JSON.stringify(payload))
 		return promise
 	}
 	
-	unsubscribe (channel) { // glorious copypasta
+	unsubscribe (group) { // glorious copypasta
 		const {id, promise} = this._createRequest()
 		const payload = {
 			type: 'unsubscribe',
 			id,
 			auth_jwt: this.config.token,
-			data: channel
+			data: group
 		}
 		this._socket.send(JSON.stringify(payload))
 		return promise
