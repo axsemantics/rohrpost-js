@@ -1,7 +1,7 @@
 const chai = require('chai')
 const sinon = require('sinon')
 const sinonChai = require('sinon-chai')
-const should = chai.should()
+const expect = chai.expect
 chai.use(sinonChai)
 
 const config = require('../config.testing')
@@ -37,7 +37,10 @@ describe('Rohrpost Client', () => {
 		count()
 	}).timeout(1500)
 	it('should subscribe', (done) => {
-		client.subscribe({type:'collection', id: 52}).then(done)
+		client.subscribe({type:'collection', id: 52}).then((response) => {
+			expect(response.group).to.equal('some-group')
+			done()
+		})
 	})
 	it('should reject bad subscription', (done) => {
 		client.subscribe({type: 'INVALID'})

@@ -45,7 +45,9 @@ const mock = {
 		if (!mock.checkAuth(message) || message.data.type === 'INVALID') {
 			response.error = "ACCESS_DENIED"
 		} else {
-			response.success = true
+			response.data = {
+				group: 'some-group'
+			}
 		}
 		
 		socket.send(JSON.stringify(response))
@@ -58,8 +60,6 @@ const mock = {
 		}
 		if (!mock.checkAuth(message) || message.data.type === 'INVALID') {
 			response.error = "ACCESS_DENIED"
-		} else {
-			response.success = true
 		}
 		
 		socket.send(JSON.stringify(response))

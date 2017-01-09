@@ -95,7 +95,7 @@ module.exports = class RohrpostClient extends EventEmitter {
 		const message = JSON.parse(rawMessage.data)
 		if(message.error) {
 			// this.emit('error', message.error)
-			this._resolveRequest(message.id, message.error)
+			this._popPendingRequest(message.id).reject(message.error)
 			return
 		}
 		this.emit('message', message)
@@ -120,11 +120,11 @@ module.exports = class RohrpostClient extends EventEmitter {
 	}
 	
 	_handleSubscribe (message) {
-		this._resolveRequest(message.id)
+		this._popPendingRequest(message.id).resolve(message.data)
 	}
 	
 	_handleUnsubscribe (message) {
-		this._resolveRequest(message.id)
+		this._popPendingRequest(message.id).resolve(message.data)
 	}
 	
 	// request - response promise matching
@@ -135,17 +135,13 @@ module.exports = class RohrpostClient extends EventEmitter {
 		return {id, promise: deferred.promise}
 	}
 	
-	_resolveRequest (id, error) {
+	_popPendingRequest (id) {
 		const deferred = this._openRequests[id]
 		if(!deferred) {
 			this.emit('error', `no saved request with id: ${id}`)
 		} else {
 			this._openRequests[id] = undefined
-			if (error) {
-				deferred.reject(error)
-			} else {
-				deferred.resolve()
-			}
+			return deferred
 		}
 	}
 }
