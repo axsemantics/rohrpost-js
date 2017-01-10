@@ -15,7 +15,7 @@ subscribe(groupObject)
 ```
 `groupObject` is defined by the application, for example `{type: 'collection', id: 5}`
 
-returns a `groupName` string, use this to listen to events
+returns a Promise, resolves with `groupName` string, use this to listen to events
 
 ### Unsubscribe from a group
 
