@@ -16,6 +16,16 @@ const mock = {
 			client.close()
 		}
 	},
+	publish (data) {
+		const payload = {
+			id: 21,
+			type: 'subscription-update',
+			data
+		}
+		for (let client of mock.server.clients) {
+			client.send(JSON.stringify(payload))
+		}
+	},
 	handleMessage (socket, rawMessage) {
 		if (mock.drop) return // fall silent
 		const message = JSON.parse(rawMessage)

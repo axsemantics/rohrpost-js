@@ -47,6 +47,18 @@ describe('Rohrpost Client', () => {
 			.then(() => { done('should reject') })
 			.catch(() => { done() })
 	})
+	it('should receive events', (done) => {
+		client.once('some-group', (err, data) => {
+			expect(data.type).to.equal('update')
+			expect(data.object).to.equal('obj')
+			done()
+		})
+		server.publish({
+			type: 'update',
+			group: 'some-group',
+			object: 'obj'
+		})
+	})
 	it('should unsubscribe', (done) => {
 		client.unsubscribe({type:'collection', id: 52}).then(done)
 	})

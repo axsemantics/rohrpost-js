@@ -103,15 +103,15 @@ module.exports = class RohrpostClient extends EventEmitter {
 		const typeHandlers = {
 			pong: this._handlePong.bind(this),
 			subscribe: this._handleSubscribe.bind(this),
-			unsubscribe: this._handleUnsubscribe.bind(this)
+			unsubscribe: this._handleUnsubscribe.bind(this),
+			'subscription-update': this._handlePublish.bind(this)
 		}
 		
 		if(typeHandlers[message.type] === undefined) {
 			this.emit('error', `incoming message type "${message.type}" not recognized`)
 		} else {
 			typeHandlers[message.type](message)
-		}
-		
+		}	
 	}
 	
 	_handlePong (message) {
@@ -125,6 +125,10 @@ module.exports = class RohrpostClient extends EventEmitter {
 	
 	_handleUnsubscribe (message) {
 		this._popPendingRequest(message.id).resolve(message.data)
+	}
+	
+	_handlePublish (message) {
+		this.emit(message.data.group, null, message.data)
 	}
 	
 	// request - response promise matching
