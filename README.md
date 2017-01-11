@@ -34,13 +34,18 @@ on(groupName, function(err, data))
 ```javascript
 const url = 'wss://api-stage.ax-semantics.com/ws/rohrpost/'
 const token = 'ey-jwt'
+const colletionId = 23
 const client = new new RohrpostClient(url, {token})
 
-client.subscribe({type:'collection', id: 52}).then((group) => {
-	client.on(group, (err, data) => {
-		console.log(`got ${data.type} on ${data.group} : ${JSON.stringify(data.object)}`)
+client.on('open', () => {
+	client.subscribe({type:'collection', id: collectionId}).then((data) => {
+		console.log(`subscribed to ${data.group}`)
+		client.on(data.group, (err, data) => {
+			console.log(`got ${data.type} on ${data.group} : ${JSON.stringify(data.object)}`)
+		})
+	}).catch((err) => {
+		console.error(err)
 	})
-}).catch((err) => {
-	console.error(err)
 })
+
 ```
