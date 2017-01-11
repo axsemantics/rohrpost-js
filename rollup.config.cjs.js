@@ -5,7 +5,7 @@ export default {
 	format: 'cjs',
 	plugins: [babel(), inject({
 		include: 'index.js',
-		Websocket: 'ws'
+		WebSocket: 'ws'
 	})],
 	dest: 'dist/rohrpost.js',
 	external: ['ws', 'events']

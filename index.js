@@ -1,4 +1,4 @@
-/* global Websocket */
+/* global WebSocket */
 import EventEmitter from 'events'
 
 const defer = function () {
@@ -18,7 +18,7 @@ module.exports = class RohrpostClient extends EventEmitter {
 			token: ''
 		}
 		this.config = Object.assign(defaultConfig, config)
-		this._socket = new Websocket(url)
+		this._socket = new WebSocket(url)
 		this._pingState = {
 			latestPong: 0,
 		}
