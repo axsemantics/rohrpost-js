@@ -34,7 +34,7 @@ module.exports = class RohrpostClient extends EventEmitter {
 
 		this._socket.addEventListener('message', this._processMessage.bind(this))
 		this._openRequests = {} // save deferred promises from requests waiting for reponse
-		this._nextRequestIndex = 0 // autoincremented rohrpost message id
+		this._nextRequestIndex = 1 // autoincremented rohrpost message id
 	}
 
 	close () {
