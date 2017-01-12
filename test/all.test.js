@@ -4,7 +4,6 @@ const sinonChai = require('sinon-chai')
 const expect = chai.expect
 chai.use(sinonChai)
 
-const config = require('../config.testing')
 const server = require('./mock-server')
 const RohrpostClient = require('../dist/rohrpost.js')
 
