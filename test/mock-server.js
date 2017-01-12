@@ -22,6 +22,23 @@ const mock = {
 			type: 'subscription-update',
 			data
 		}
+		mock.sendToAll(payload)
+	},
+	sendTrashMessageType () {
+		const payload = {
+			id: 'TRASH',
+			type: 'TRASH'
+		}
+		mock.sendToAll(payload)
+	},
+	sendTrashUpdateId () {
+		const payload = {
+			id: 'TRASH',
+			type: 'subscribe'
+		}
+		mock.sendToAll(payload)
+	},
+	sendToAll (payload) {
 		for (let client of mock.server.clients) {
 			client.send(JSON.stringify(payload))
 		}

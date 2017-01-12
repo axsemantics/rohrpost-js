@@ -8,6 +8,8 @@
 node_modules
 public
 dist
+.nyc_output
+coverage
 
 config.testing.js
 .publish

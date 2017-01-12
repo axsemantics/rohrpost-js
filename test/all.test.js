@@ -76,4 +76,13 @@ describe('Rohrpost Client', () => {
 		client.once('open', () => client.close())
 		client.once('closed', done)
 	})
+	it('should error on unknown message type', (done) => {
+		client = new RohrpostClient(WS_URL, {pingInterval: 500, token: 'hunter2'})
+		client.once('open', () => server.sendTrashMessageType())
+		client.once('error', () => done())
+	})
+	it('should error on unknown message id', (done) => {
+		client.once('error', () => done())
+		server.sendTrashUpdateId()
+	})
 })
