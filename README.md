@@ -1,4 +1,4 @@
-# Rohrpost JS
+# rohrpost-js [![Build Status](https://travis-ci.org/axsemantics/rohrpost-js.svg?branch=master)](https://travis-ci.org/axsemantics/rohrpost-js) [![Coverage Status](https://coveralls.io/repos/github/axsemantics/rohrpost-js/badge.svg?branch=master)](https://coveralls.io/github/axsemantics/rohrpost-js?branch=master)
 
 ## Client
 
