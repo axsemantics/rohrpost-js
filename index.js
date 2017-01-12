@@ -34,6 +34,7 @@ module.exports = class RohrpostClient extends EventEmitter {
 
 		this._socket.addEventListener('message', this._processMessage.bind(this))
 		this._openRequests = {} // save deferred promises from requests waiting for reponse
+		this._nextRequestIndex = 0 // autoincremented rohrpost message id
 	}
 
 	close () {
@@ -119,11 +120,15 @@ module.exports = class RohrpostClient extends EventEmitter {
 	}
 
 	_handleSubscribe (message) {
-		this._popPendingRequest(message.id).resolve(message.data)
+		const req = this._popPendingRequest(message.id)
+		if (req === null) return // error already emitted in pop
+		req.resolve(message.data)
 	}
 
 	_handleUnsubscribe (message) {
-		this._popPendingRequest(message.id).resolve(message.data)
+		const req = this._popPendingRequest(message.id)
+		if (req === null) return // error already emitted in pop
+		req.resolve(message.data)
 	}
 
 	_handlePublish (message) {
@@ -132,7 +137,7 @@ module.exports = class RohrpostClient extends EventEmitter {
 
 	// request - response promise matching
 	_createRequest () {
-		const id = Date.now()
+		const id = this._nextRequestIndex++
 		const deferred = defer()
 		this._openRequests[id] = deferred
 		return {id, promise: deferred.promise}
