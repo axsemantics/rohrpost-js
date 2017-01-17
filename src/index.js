@@ -10,7 +10,7 @@ const defer = function () {
 	return deferred
 }
 
-module.exports = class RohrpostClient extends EventEmitter {
+export default class RohrpostClient extends EventEmitter {
 	constructor (url, config) {
 		super()
 		const defaultConfig = {
