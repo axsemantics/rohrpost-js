@@ -35,7 +35,7 @@ on(groupName, function(err, data))
 const url = 'wss://api-stage.ax-semantics.com/ws/rohrpost/'
 const token = 'ey-jwt'
 const colletionId = 23
-const client = new new RohrpostClient(url, {token})
+const client = new RohrpostClient(url, {token})
 
 client.on('open', () => {
 	client.subscribe({type:'collection', id: collectionId}).then((data) => {
