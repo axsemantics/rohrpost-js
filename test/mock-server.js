@@ -52,12 +52,10 @@ const mock = {
 			subscribe: mock.handleSubscribe,
 			unsubscribe: mock.handleUnsubscribe
 		}
-		
 		handlers[message.type](socket, message)
 	},
 	handlePing (socket, message) {
-		
-		const response =  {
+		const response = {
 			type: 'pong',
 			id: message.id
 		}
@@ -70,13 +68,12 @@ const mock = {
 			id: message.id
 		}
 		if (!mock.checkAuth(message) || message.data.type === 'INVALID') {
-			response.error = "ACCESS_DENIED"
+			response.error = 'ACCESS_DENIED'
 		} else {
 			response.data = {
 				group: 'some-group'
 			}
 		}
-		
 		socket.send(JSON.stringify(response))
 	},
 	handleUnsubscribe (socket, message) { // glorious copypasta
@@ -86,9 +83,8 @@ const mock = {
 			id: message.id
 		}
 		if (!mock.checkAuth(message) || message.data.type === 'INVALID') {
-			response.error = "ACCESS_DENIED"
+			response.error = 'ACCESS_DENIED'
 		}
-		
 		socket.send(JSON.stringify(response))
 	},
 	checkAuth (message) {

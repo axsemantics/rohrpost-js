@@ -1,3 +1,5 @@
+/* global describe, before, it */
+
 const chai = require('chai')
 const sinon = require('sinon')
 const sinonChai = require('sinon-chai')
@@ -36,7 +38,7 @@ describe('Rohrpost Client', () => {
 		count()
 	}).timeout(1500)
 	it('should subscribe', (done) => {
-		client.subscribe({type:'collection', id: 52}).then((response) => {
+		client.subscribe({type: 'collection', id: 52}).then((response) => {
 			expect(response.group).to.equal('some-group')
 			done()
 		})
@@ -59,7 +61,7 @@ describe('Rohrpost Client', () => {
 		})
 	})
 	it('should unsubscribe', (done) => {
-		client.unsubscribe({type:'collection', id: 52}).then(done)
+		client.unsubscribe({type: 'collection', id: 52}).then(done)
 	})
 	it('should detect timeouts', (done) => {
 		client.once('closed', done)
