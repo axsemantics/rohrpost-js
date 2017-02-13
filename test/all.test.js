@@ -20,7 +20,7 @@ describe('Rohrpost Client', () => {
 		}, done)
 	})
 	it('should connect', (done) => {
-		client = new RohrpostClient(WS_URL, {pingInterval: 500, token: 'hunter2'})
+		client = new RohrpostClient(WS_URL, {pingInterval: 300, token: 'hunter2'})
 		client.once('open', done)
 		client.on('error', (error) => {
 			throw new Error(error) // let us hear the screams
@@ -39,7 +39,7 @@ describe('Rohrpost Client', () => {
 	}).timeout(1500)
 	it('should subscribe', (done) => {
 		client.subscribe({type: 'collection', id: 52}).then((response) => {
-			expect(response.group).to.equal('some-group')
+			expect(response.group).to.equal('collection-52')
 			done()
 		})
 	})
@@ -49,32 +49,47 @@ describe('Rohrpost Client', () => {
 			.catch(() => { done() })
 	})
 	it('should receive events', (done) => {
-		client.once('some-group', (err, data) => {
+		client.once('collection-52', (err, data) => {
 			expect(data.type).to.equal('update')
 			expect(data.object).to.equal('obj')
 			done()
 		})
 		server.publish({
 			type: 'update',
-			group: 'some-group',
+			group: 'collection-52',
 			object: 'obj'
 		})
-	})
-	it('should unsubscribe', (done) => {
-		client.unsubscribe({type: 'collection', id: 52}).then(done)
 	})
 	it('should detect timeouts', (done) => {
 		client.once('closed', done)
 		server.drop = true
 	})
+	it('… and reconnect', (done) => {
+		client.once('open', done)
+		server.drop = false
+	})
+	it('should automatically resubscribe', (done) => {
+		// TODO test this for real
+		client.once('collection-52', (err, data) => {
+			done()
+		})
+		server.publish({
+			type: 'update',
+			group: 'collection-52',
+		})
+	})
+	it('should unsubscribe', (done) => {
+		client.unsubscribe({type: 'collection', id: 52}).then(done)
+	})
 	it('should close when server closes', (done) => {
-		client = new RohrpostClient(WS_URL, {pingInterval: 500, token: 'hunter2'})
-		client.once('open', () => server.killAll())
+		server.killAll()
 		client.once('closed', done)
 	})
+	it('… and reconnect', (done) => {
+		client.once('open', done)
+	})
 	it('should close itself', (done) => {
-		client = new RohrpostClient(WS_URL, {pingInterval: 500, token: 'hunter2'})
-		client.once('open', () => client.close())
+		client.close()
 		client.once('closed', done)
 	})
 	it('should error on unknown message type', (done) => {

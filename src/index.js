@@ -17,36 +17,23 @@ export default class RohrpostClient extends EventEmitter {
 			pingInterval: 5000,
 			token: ''
 		}
-		this.config = Object.assign(defaultConfig, config)
-		this._socket = new WebSocket(url)
-		this._pingState = {
-			latestPong: 0,
-		}
-		this._socket.addEventListener('open', () => {
-			this.emit('open')
-			// start pinging
-			this._ping()
-		})
-
-		this._socket.addEventListener('close', () => {
-			this.emit('closed') // why past tense? because the socket is already closed and not currently closing
-		})
-
-		this._socket.addEventListener('message', this._processMessage.bind(this))
-		this._openRequests = {} // save deferred promises from requests waiting for reponse
-		this._nextRequestIndex = 1 // autoincremented rohrpost message id
+		this._config = Object.assign(defaultConfig, config)
+		this._url = url
+		this._subscriptions = {}
+		this._createSocket()
 	}
 
 	close () {
+		this._normalClose = true
 		this._socket.close()
 	}
 
 	subscribe (group) {
-		const {id, promise} = this._createRequest()
+		const {id, promise} = this._createRequest(group)
 		const payload = {
 			type: 'subscribe',
 			id,
-			auth_jwt: this.config.token,
+			auth_jwt: this._config.token,
 			data: group
 		}
 		this._socket.send(JSON.stringify(payload))
@@ -54,11 +41,11 @@ export default class RohrpostClient extends EventEmitter {
 	}
 
 	unsubscribe (group) { // glorious copypasta
-		const {id, promise} = this._createRequest()
+		const {id, promise} = this._createRequest(group)
 		const payload = {
 			type: 'unsubscribe',
 			id,
-			auth_jwt: this.config.token,
+			auth_jwt: this._config.token,
 			data: group
 		}
 		this._socket.send(JSON.stringify(payload))
@@ -68,10 +55,36 @@ export default class RohrpostClient extends EventEmitter {
 	// ===========================================================================
 	// INTERNALS
 	// ===========================================================================
+	_createSocket () {
+		this._socket = new WebSocket(this._url)
+		this.socketState = 'connecting' // 'closed', 'open', 'connecting'
+		this._pingState = {
+			latestPong: 0,
+		}
+		this.normalClose = false
+		this._socket.addEventListener('open', () => {
+			this.emit('open')
+			this.socketState = 'open'
+			// start pinging
+			this._ping(this._socket)
+			this._resubscribe()
+		})
 
-	_ping () {
-		if (this._socket.readyState !== 1) // socket still open?
-			return
+		this._socket.addEventListener('close', (event) => {
+			this.socketState = 'closed'
+			this.emit('closed') // why past tense? because the socket is already closed and not currently closing
+			if (!this._normalClose) {
+				this.emit('reconnecting')
+				this._createSocket()
+			}
+		})
+
+		this._socket.addEventListener('message', this._processMessage.bind(this))
+		this._openRequests = {} // save deferred promises from requests waiting for reponse
+		this._nextRequestIndex = 1 // autoincremented rohrpost message id
+	}
+
+	_ping (starterSocket) { // we need a ref to the socket to detect reconnects and stop the old ping loop
 		const timestamp = Date.now()
 		const payload = {
 			type: 'ping',
@@ -80,10 +93,11 @@ export default class RohrpostClient extends EventEmitter {
 		this._socket.send(JSON.stringify(payload))
 		this.emit('ping')
 		setTimeout(() => {
+			if (this._socket.readyState !== 1 || this._socket !== starterSocket) return // looping on old socket, abort
 			if (timestamp > this._pingState.latestPong) // we received no pong after the last ping
 				this._handlePingTimeout()
-			else this._ping()
-		}, this.config.pingInterval)
+			else this._ping(starterSocket)
+		}, this._config.pingInterval)
 	}
 
 	_handlePingTimeout () {
@@ -93,12 +107,14 @@ export default class RohrpostClient extends EventEmitter {
 
 	_processMessage (rawMessage) {
 		const message = JSON.parse(rawMessage.data)
+		this.emit('message', message)
 		if (message.error) {
 			// this.emit('error', message.error)
-			this._popPendingRequest(message.id).reject(message.error)
+			const req = this._popPendingRequest(message.id)
+			if (req === null) return
+			req.deferred.reject(message.error)
 			return
 		}
-		this.emit('message', message)
 
 		const typeHandlers = {
 			pong: this._handlePong.bind(this),
@@ -119,16 +135,29 @@ export default class RohrpostClient extends EventEmitter {
 		this._pingState.latestPong = Date.now()
 	}
 
+	_resubscribe () {
+		for (let args of Object.values(this._subscriptions)) {
+			this.subscribe(args)
+		}
+	}
+
 	_handleSubscribe (message) {
 		const req = this._popPendingRequest(message.id)
 		if (req === null) return // error already emitted in pop
-		req.resolve(message.data)
+		if (!this._subscriptions[message.data.group]) this._subscriptions[message.data.group] = req.args
+		req.deferred.resolve(message.data)
 	}
 
 	_handleUnsubscribe (message) {
 		const req = this._popPendingRequest(message.id)
 		if (req === null) return // error already emitted in pop
-		req.resolve(message.data)
+		for (let [group, args] of Object.entries(this._subscriptions)) {
+			if (args.type === req.args.type && args.id === req.args.id) { // this is perhaps a bit stupid
+				delete this._subscriptions[group]
+				break
+			}
+		}
+		req.deferred.resolve(message.data)
 	}
 
 	_handlePublish (message) {
@@ -136,20 +165,20 @@ export default class RohrpostClient extends EventEmitter {
 	}
 
 	// request - response promise matching
-	_createRequest () {
+	_createRequest (args) {
 		const id = this._nextRequestIndex++
 		const deferred = defer()
-		this._openRequests[id] = deferred
+		this._openRequests[id] = {deferred, args}
 		return {id, promise: deferred.promise}
 	}
 
 	_popPendingRequest (id) {
-		const deferred = this._openRequests[id]
-		if (!deferred) {
+		const req = this._openRequests[id]
+		if (!req) {
 			this.emit('error', `no saved request with id: ${id}`)
 		} else {
 			this._openRequests[id] = undefined
-			return deferred
+			return req
 		}
 	}
 }

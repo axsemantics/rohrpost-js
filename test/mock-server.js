@@ -59,6 +59,8 @@ const mock = {
 			type: 'pong',
 			id: message.id
 		}
+		if (socket.readyState !== 1) // socket still open?
+			return
 		socket.send(JSON.stringify(response))
 	},
 	handleSubscribe (socket, message) {
@@ -71,7 +73,7 @@ const mock = {
 			response.error = 'ACCESS_DENIED'
 		} else {
 			response.data = {
-				group: 'some-group'
+				group: `${message.data.type}-${message.data.id}`
 			}
 		}
 		socket.send(JSON.stringify(response))
