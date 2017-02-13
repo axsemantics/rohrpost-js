@@ -1,6 +1,6 @@
 {
   "name": "rohrpost",
-  "version": "0.1.4",
+  "version": "0.2.0",
   "description": "Rohrpost Client for the Browser",
   "main": "dist/rohrpost.js",
   "jsnext:main": "dist/rohrpost.es.js",
