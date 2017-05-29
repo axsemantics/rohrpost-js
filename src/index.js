@@ -52,6 +52,17 @@ export default class RohrpostClient extends EventEmitter {
 		return promise
 	}
 
+	call (name, data) {
+		const {id, promise} = this._createRequest()
+		const payload = {
+			type: name,
+			id,
+			data
+		}
+		this._socket.send(JSON.stringify(payload))
+		return promise
+	}
+
 	// ===========================================================================
 	// INTERNALS
 	// ===========================================================================
@@ -124,7 +135,7 @@ export default class RohrpostClient extends EventEmitter {
 		}
 
 		if (typeHandlers[message.type] === undefined) {
-			this.emit('error', `incoming message type "${message.type}" not recognized`)
+			this._handleGeneric(message)
 		} else {
 			typeHandlers[message.type](message)
 		}
@@ -162,6 +173,12 @@ export default class RohrpostClient extends EventEmitter {
 
 	_handlePublish (message) {
 		this.emit(message.data.group, null, message.data)
+	}
+
+	_handleGeneric (message) {
+		const req = this._popPendingRequest(message.id)
+		if (req === null) return // error already emitted in pop
+		req.deferred.resolve(message.data)
 	}
 
 	// request - response promise matching

@@ -60,6 +60,12 @@ describe('Rohrpost Client', () => {
 			object: 'obj'
 		})
 	})
+	it('should handle custom calls', (done) => {
+		client.call('my-little-incrementer', {number: 4}).then((response) => {
+			expect(response.number).to.equal(5)
+			done()
+		}).catch(() => { done('should not error') })
+	})
 	it('should detect timeouts', (done) => {
 		client.once('closed', done)
 		server.drop = true
@@ -93,11 +99,13 @@ describe('Rohrpost Client', () => {
 		client.once('closed', done)
 	})
 	it('should error on unknown message type', (done) => {
-		client = new RohrpostClient(WS_URL, {pingInterval: 500, token: 'hunter2'})
+		client = new RohrpostClient(WS_URL, {pingInterval: 50000, token: 'hunter2'})
 		client.once('open', () => server.sendTrashMessageType())
 		client.once('error', () => done())
 	})
 	it('should error on unknown message id', (done) => {
+		client = new RohrpostClient(WS_URL, {pingInterval: 50000, token: 'hunter2'})
+		client.once('open', () => server.sendTrashUpdateId())
 		client.once('error', () => done())
 		server.sendTrashUpdateId()
 	})

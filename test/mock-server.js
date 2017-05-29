@@ -50,7 +50,8 @@ const mock = {
 		const handlers = {
 			ping: mock.handlePing,
 			subscribe: mock.handleSubscribe,
-			unsubscribe: mock.handleUnsubscribe
+			unsubscribe: mock.handleUnsubscribe,
+			'my-little-incrementer': mock.handleIncrement
 		}
 		handlers[message.type](socket, message)
 	},
@@ -86,6 +87,16 @@ const mock = {
 		}
 		if (!mock.checkAuth(message) || message.data.type === 'INVALID') {
 			response.error = 'ACCESS_DENIED'
+		}
+		socket.send(JSON.stringify(response))
+	},
+	handleIncrement (socket, message) {
+		const response = {
+			type: 'my-little-incrementer',
+			id: message.id,
+			data: {
+				number: message.data.number + 1
+			}
 		}
 		socket.send(JSON.stringify(response))
 	},
