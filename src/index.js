@@ -85,8 +85,10 @@ export default class RohrpostClient extends EventEmitter {
 			this.socketState = 'closed'
 			this.emit('closed') // why past tense? because the socket is already closed and not currently closing
 			if (!this._normalClose) {
-				this.emit('reconnecting')
-				this._createSocket()
+				setTimeout(() => {
+					this.emit('reconnecting')
+					this._createSocket()
+				}, 3000) // throttle reconnect
 			}
 		})
 

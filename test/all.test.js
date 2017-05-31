@@ -73,7 +73,7 @@ describe('Rohrpost Client', () => {
 	it('… and reconnect', (done) => {
 		client.once('open', done)
 		server.drop = false
-	})
+	}).timeout(5000)
 	it('should automatically resubscribe', (done) => {
 		// TODO test this for real
 		client.once('collection-52', (err, data) => {
@@ -93,7 +93,7 @@ describe('Rohrpost Client', () => {
 	})
 	it('… and reconnect', (done) => {
 		client.once('open', done)
-	})
+	}).timeout(5000)
 	it('should close itself', (done) => {
 		client.close()
 		client.once('closed', done)
