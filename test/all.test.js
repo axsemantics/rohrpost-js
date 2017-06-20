@@ -66,6 +66,11 @@ describe('Rohrpost Client', () => {
 			done()
 		}).catch(() => { done('should not error') })
 	})
+	it('should handle custom call timeouts', (done) => {
+		client.call('my-little-timeouter', {number: 4}, {timeout: 500}).then(() => {
+			done('should not resolve')
+		}).catch(() => { done() })
+	})
 	it('should detect timeouts', (done) => {
 		client.once('closed', done)
 		server.drop = true

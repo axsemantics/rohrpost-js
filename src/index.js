@@ -52,7 +52,12 @@ export default class RohrpostClient extends EventEmitter {
 		return promise
 	}
 
-	call (name, data) {
+	call (name, data, opts) {
+		const options = {
+			timeout: 2000
+		}
+		Object.assign(options, opts)
+
 		const {id, promise} = this._createRequest()
 		const payload = {
 			type: name,
@@ -60,6 +65,12 @@ export default class RohrpostClient extends EventEmitter {
 			data
 		}
 		this._socket.send(JSON.stringify(payload))
+		setTimeout(() => {
+			if (this._openRequests[id]) {
+				const timeoutedRequest = this._popPendingRequest(id)
+				timeoutedRequest.deferred.reject(new Error('call timed out'))
+			}
+		}, options.timeout)
 		return promise
 	}
 

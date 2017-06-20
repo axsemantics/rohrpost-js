@@ -51,7 +51,8 @@ const mock = {
 			ping: mock.handlePing,
 			subscribe: mock.handleSubscribe,
 			unsubscribe: mock.handleUnsubscribe,
-			'my-little-incrementer': mock.handleIncrement
+			'my-little-incrementer': mock.handleIncrement,
+			'my-little-timeouter': mock.handleTimeout
 		}
 		handlers[message.type](socket, message)
 	},
@@ -99,6 +100,9 @@ const mock = {
 			}
 		}
 		socket.send(JSON.stringify(response))
+	},
+	handleTimeout (socket, message) {
+		// just let it rot
 	},
 	checkAuth (message) {
 		return message.auth_jwt === 'hunter2'
