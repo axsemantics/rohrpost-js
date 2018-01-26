@@ -62,6 +62,7 @@ export default class RohrpostClient extends EventEmitter {
 		const payload = {
 			type: name,
 			id,
+			auth_jwt: this._config.token,
 			data
 		}
 		this._socket.send(JSON.stringify(payload))
@@ -102,7 +103,6 @@ export default class RohrpostClient extends EventEmitter {
 				}, 3000) // throttle reconnect
 			}
 		})
-
 		this._socket.addEventListener('message', this._processMessage.bind(this))
 		this._openRequests = {} // save deferred promises from requests waiting for reponse
 		this._nextRequestIndex = 1 // autoincremented rohrpost message id
