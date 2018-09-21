@@ -14,7 +14,7 @@ node_js:
   - "10"
 
 before_script:
-  - npm install
+  - npm ci
 
 script:
   - npm run build -s
