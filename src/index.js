@@ -143,7 +143,7 @@ export default class RohrpostClient extends EventEmitter {
 		if (message.error) {
 			// this.emit('error', message.error)
 			const req = this._popPendingRequest(message.id)
-			if (req === null) return
+			if (!req) return
 			req.deferred.reject(message.error)
 			return
 		}
@@ -179,14 +179,14 @@ export default class RohrpostClient extends EventEmitter {
 
 	_handleSubscribe (message) {
 		const req = this._popPendingRequest(message.id)
-		if (req === null) return // error already emitted in pop
+		if (!req) return // error already emitted in pop
 		if (!this._subscriptions[message.data.group]) this._subscriptions[message.data.group] = req.args
 		req.deferred.resolve(message.data)
 	}
 
 	_handleUnsubscribe (message) {
 		const req = this._popPendingRequest(message.id)
-		if (req === null) return // error already emitted in pop
+		if (!req) return // error already emitted in pop
 		for (let [group, args] of Object.entries(this._subscriptions)) {
 			if (args.type === req.args.type && args.id === req.args.id) { // this is perhaps a bit stupid
 				delete this._subscriptions[group]
@@ -202,7 +202,7 @@ export default class RohrpostClient extends EventEmitter {
 
 	_handleGeneric (message) {
 		const req = this._popPendingRequest(message.id)
-		if (req === null) return // error already emitted in pop
+		if (!req) return // error already emitted in pop
 		req.deferred.resolve(message.data)
 	}
 

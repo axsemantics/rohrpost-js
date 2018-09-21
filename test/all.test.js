@@ -1,4 +1,4 @@
-/* global describe, before, it */
+/* global describe, before, after, it */
 
 const chai = require('chai')
 const sinon = require('sinon')
@@ -19,6 +19,11 @@ describe('Rohrpost Client', () => {
 			port: PORT
 		}, done)
 	})
+
+	after(function () {
+		server.destroy()
+	})
+
 	it('should connect', (done) => {
 		client = new RohrpostClient(WS_URL, {pingInterval: 300, token: 'hunter2'})
 		client.once('open', done)
@@ -106,12 +111,13 @@ describe('Rohrpost Client', () => {
 	it('should error on unknown message type', (done) => {
 		client = new RohrpostClient(WS_URL, {pingInterval: 50000, token: 'hunter2'})
 		client.once('open', () => server.sendTrashMessageType())
-		client.once('error', () => done())
+		client.once('error', () => client.close())
+		client.once('closed', done)
 	})
 	it('should error on unknown message id', (done) => {
 		client = new RohrpostClient(WS_URL, {pingInterval: 50000, token: 'hunter2'})
 		client.once('open', () => server.sendTrashUpdateId())
-		client.once('error', () => done())
-		server.sendTrashUpdateId()
+		client.once('error', () => client.close())
+		client.once('closed', done)
 	})
 })

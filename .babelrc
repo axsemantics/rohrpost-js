@@ -1,18 +1,21 @@
 {
-  "presets": [
-    [
-      "es2015",
-      {
-        "modules": false
-      }
-    ]
-  ],
-  "plugins": [
-    "external-helpers"
-  ],
-  "env": {
-    "test": {
-      "plugins": [ "istanbul" ]
-    }
-  }
+	"presets": [
+		[
+			"@babel/env", {
+				"modules": false,
+				"loose": true,
+				"targets": {
+					"chrome": 66
+				}
+			}
+		]
+	],
+	"plugins": [
+		"@babel/plugin-external-helpers"
+	],
+	"env": {
+		"test": {
+			"plugins": [ "istanbul" ]
+		}
+	}
 }

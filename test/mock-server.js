@@ -11,6 +11,9 @@ const mock = {
 			socket.on('message', mock.handleMessage.bind(this, socket))
 		})
 	},
+	destroy () {
+		mock.server.close()
+	},
 	killAll () {
 		for (let client of mock.server.clients) {
 			client.close()

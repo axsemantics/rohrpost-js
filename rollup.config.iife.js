@@ -5,6 +5,11 @@ export default {
 	moduleName: 'RohrpostClient',
 	entry: 'src/index.js',
 	format: 'iife',
-	plugins: [babel(), builtins()],
+	plugins: [
+		babel({
+			externalHelpers: true
+		}),
+		builtins()
+	],
 	dest: 'dist/rohrpost.browser.js'
 }
