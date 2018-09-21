@@ -36,7 +36,7 @@ export default class RohrpostClient extends EventEmitter {
 			auth_jwt: this._config.token,
 			data: group
 		}
-		this._socket.send(JSON.stringify(payload))
+		this._send(JSON.stringify(payload))
 		return promise
 	}
 
@@ -48,7 +48,7 @@ export default class RohrpostClient extends EventEmitter {
 			auth_jwt: this._config.token,
 			data: group
 		}
-		this._socket.send(JSON.stringify(payload))
+		this._send(JSON.stringify(payload))
 		return promise
 	}
 
@@ -65,7 +65,7 @@ export default class RohrpostClient extends EventEmitter {
 			auth_jwt: this._config.token,
 			data
 		}
-		this._socket.send(JSON.stringify(payload))
+		this._send(JSON.stringify(payload))
 		setTimeout(() => {
 			if (this._openRequests[id]) {
 				const timeoutedRequest = this._popPendingRequest(id)
@@ -114,7 +114,7 @@ export default class RohrpostClient extends EventEmitter {
 			type: 'ping',
 			id: timestamp
 		}
-		this._socket.send(JSON.stringify(payload))
+		this._send(JSON.stringify(payload))
 		this.emit('ping')
 		setTimeout(() => {
 			if (this._socket.readyState !== 1 || this._socket !== starterSocket) return // looping on old socket, abort
@@ -127,6 +127,14 @@ export default class RohrpostClient extends EventEmitter {
 	_handlePingTimeout () {
 		this._socket.close()
 		this.emit('closed')
+	}
+
+	_send (payload) {
+		this._socket.send(payload)
+		this.emit('log', {
+			direction: 'send',
+			data: payload
+		})
 	}
 
 	_processMessage (rawMessage) {
@@ -152,6 +160,10 @@ export default class RohrpostClient extends EventEmitter {
 		} else {
 			typeHandlers[message.type](message)
 		}
+		this.emit('log', {
+			direction: 'receive',
+			data: rawMessage.data
+		})
 	}
 
 	_handlePong (message) {
