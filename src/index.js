@@ -29,7 +29,7 @@ export default class RohrpostClient extends EventEmitter {
 	}
 
 	subscribe (group) {
-		const {id, promise} = this._createRequest(group)
+		const { id, promise } = this._createRequest(group)
 		const payload = {
 			type: 'subscribe',
 			id,
@@ -41,7 +41,7 @@ export default class RohrpostClient extends EventEmitter {
 	}
 
 	unsubscribe (group) { // glorious copypasta
-		const {id, promise} = this._createRequest(group)
+		const { id, promise } = this._createRequest(group)
 		const payload = {
 			type: 'unsubscribe',
 			id,
@@ -58,7 +58,7 @@ export default class RohrpostClient extends EventEmitter {
 		}
 		Object.assign(options, opts)
 
-		const {id, promise} = this._createRequest()
+		const { id, promise } = this._createRequest()
 		const payload = {
 			type: name,
 			id,
@@ -210,8 +210,8 @@ export default class RohrpostClient extends EventEmitter {
 	_createRequest (args) {
 		const id = this._nextRequestIndex++
 		const deferred = defer()
-		this._openRequests[id] = {deferred, args}
-		return {id, promise: deferred.promise}
+		this._openRequests[id] = { deferred, args }
+		return { id, promise: deferred.promise }
 	}
 
 	_popPendingRequest (id) {
