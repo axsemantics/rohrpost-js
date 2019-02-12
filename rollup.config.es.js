@@ -1,13 +1,15 @@
 import babel from 'rollup-plugin-babel'
 
 export default {
-	entry: 'src/index.js',
-	format: 'es',
+	input: 'src/index.js',
 	plugins: [
 		babel({
 			externalHelpers: true
 		})
 	],
-	dest: 'dist/rohrpost.es.js',
+	output: {
+		file: 'dist/rohrpost.es.js',
+		format: 'es'
+	},
 	external: ['events']
 }

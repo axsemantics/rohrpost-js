@@ -2,14 +2,16 @@ import babel from 'rollup-plugin-babel'
 import builtins from 'rollup-plugin-node-builtins'
 
 export default {
-	moduleName: 'RohrpostClient',
-	entry: 'src/index.js',
-	format: 'iife',
+	input: 'src/index.js',
 	plugins: [
 		babel({
 			externalHelpers: true
 		}),
 		builtins()
 	],
-	dest: 'dist/rohrpost.browser.js'
+	output: {
+		file: 'dist/rohrpost.browser.js',
+		format: 'iife',
+		name: 'RohrpostClient'
+	}
 }
