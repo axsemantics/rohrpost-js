@@ -14,6 +14,6 @@ export default {
 	output: {
 		file:'dist/rohrpost.js',
 		format: 'cjs'
-	}
+	},
 	external: ['ws', 'events']
 }
