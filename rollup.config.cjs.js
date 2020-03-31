@@ -1,7 +1,12 @@
 import babel from 'rollup-plugin-babel'
-import inject from 'rollup-plugin-inject'
+import inject from '@rollup/plugin-inject'
+
 export default {
 	input: 'src/index.js',
+	output: {
+		file: 'dist/rohrpost.js',
+		format: 'cjs',
+	},
 	plugins: [
 		babel({
 			externalHelpers: true
@@ -11,9 +16,5 @@ export default {
 			WebSocket: 'ws'
 		})
 	],
-	output: {
-		file:'dist/rohrpost.js',
-		format: 'cjs'
-	},
 	external: ['ws', 'events']
 }
