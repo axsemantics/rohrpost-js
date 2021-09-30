@@ -36,11 +36,21 @@ export default class RohrpostClient extends EventEmitter {
 			auth_jwt: this._config.token,
 			data: group
 		}
-		this._send(JSON.stringify(payload))
+		const send = this._send.bind(this, JSON.stringify(payload))
+		if (this.socketState === 'connecting') {
+			this.once('open', send)
+		} else {
+			send()
+		}
 		return promise
 	}
 
-	unsubscribe (group) { // glorious copypasta
+	unsubscribe (group) {
+		if (this.socketState !== 'open') {
+			// Connection is down anyway, just cancel subscription
+			delete this._subscriptions[group]
+			return Promise.resolve()
+		}
 		const { id, promise } = this._createRequest(group)
 		const payload = {
 			type: 'unsubscribe',

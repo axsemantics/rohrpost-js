@@ -120,4 +120,8 @@ describe('Rohrpost Client', () => {
 		client.once('error', () => client.close())
 		client.once('closed', done)
 	})
+	it('should unsubscribe when offline', (done) => {
+		server.killAll()
+		client.unsubscribe({type: 'collection', id: 52}).then(done)
+	})
 })
