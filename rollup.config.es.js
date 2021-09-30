@@ -6,7 +6,6 @@ export default {
 		file: 'dist/rohrpost.es.js',
 		format: 'es',
 	},
-	entry: 'src/index.js',
 	plugins: [
 		babel({
 			externalHelpers: true

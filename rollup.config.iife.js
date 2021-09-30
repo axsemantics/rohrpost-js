@@ -8,7 +8,6 @@ export default {
 		file: 'dist/rohrpost.iife.js',
 		format: 'iife',
 	},
-	entry: 'src/index.js',
 	plugins: [
 		babel({
 			externalHelpers: true
