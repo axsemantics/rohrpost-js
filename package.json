@@ -26,14 +26,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/aexeagmbh/rohrpost-js-client.git"
+    "url": "git+https://github.com/axsemantics/rohrpost-js.git"
   },
   "author": "rashfael <sebastian.gepperth@ax-semantics.com>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/aexeagmbh/rohrpost-js-client/issues"
+    "url": "https://github.com/axsemantics/rohrpost-js/issues"
   },
-  "homepage": "https://github.com/aexeagmbh/rohrpost-js-client#readme",
+  "homepage": "https://github.com/axsemantics/rohrpost-js#readme",
   "dependencies": {},
   "devDependencies": {
     "@babel/core": "^7.9.0",
