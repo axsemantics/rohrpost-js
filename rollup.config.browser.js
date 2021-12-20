@@ -1,11 +1,16 @@
-import babel from 'rollup-plugin-babel'
-import builtins from 'rollup-plugin-node-builtins'
+import babel from '@rollup/plugin-babel'
 
 export default {
 	input: 'src/index.js',
 	output: {
+		file: 'dist/rohrpost.browser.js',
 		format: 'cjs',
-		file: 'dist/rohrpost.browser.js'
+		exports: 'default'
 	},
-	plugins: [babel(), builtins()]
+	plugins: [
+		babel({
+			babelHelpers: 'external'
+		})
+	],
+	external: ['events']
 }

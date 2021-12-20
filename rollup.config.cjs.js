@@ -1,4 +1,4 @@
-import babel from 'rollup-plugin-babel'
+import babel from '@rollup/plugin-babel'
 import inject from '@rollup/plugin-inject'
 
 export default {
@@ -6,10 +6,11 @@ export default {
 	output: {
 		file: 'dist/rohrpost.js',
 		format: 'cjs',
+		exports: 'default'
 	},
 	plugins: [
 		babel({
-			externalHelpers: true
+			babelHelpers: 'external'
 		}),
 		inject({
 			include: 'src/index.js',

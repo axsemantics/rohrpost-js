@@ -1,5 +1,5 @@
-import babel from 'rollup-plugin-babel'
-import builtins from 'rollup-plugin-node-builtins'
+import babel from '@rollup/plugin-babel'
+import node from 'rollup-plugin-polyfill-node'
 
 export default {
 	input: 'src/index.js',
@@ -10,8 +10,8 @@ export default {
 	},
 	plugins: [
 		babel({
-			externalHelpers: true
+			babelHelpers: 'external'
 		}),
-		builtins()
+		node()
 	],
 }

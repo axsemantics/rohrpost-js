@@ -1,4 +1,3 @@
-/* global WebSocket */
 import EventEmitter from 'events'
 
 const defer = function () {
@@ -182,7 +181,7 @@ export default class RohrpostClient extends EventEmitter {
 	}
 
 	_resubscribe () {
-		for (let args of Object.values(this._subscriptions)) {
+		for (const args of Object.values(this._subscriptions)) {
 			this.subscribe(args)
 		}
 	}
@@ -197,7 +196,7 @@ export default class RohrpostClient extends EventEmitter {
 	_handleUnsubscribe (message) {
 		const req = this._popPendingRequest(message.id)
 		if (!req) return // error already emitted in pop
-		for (let [group, args] of Object.entries(this._subscriptions)) {
+		for (const [group, args] of Object.entries(this._subscriptions)) {
 			if (args.type === req.args.type && args.id === req.args.id) { // this is perhaps a bit stupid
 				delete this._subscriptions[group]
 				break

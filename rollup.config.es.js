@@ -1,4 +1,4 @@
-import babel from 'rollup-plugin-babel'
+import babel from '@rollup/plugin-babel'
 
 export default {
 	input: 'src/index.js',
@@ -8,7 +8,7 @@ export default {
 	},
 	plugins: [
 		babel({
-			externalHelpers: true
+			babelHelpers: 'external'
 		})
 	],
 	external: ['events']
