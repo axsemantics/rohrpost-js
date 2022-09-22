@@ -93,6 +93,8 @@ export default class RohrpostClient extends EventEmitter {
 		this.socketState = 'connecting' // 'closed', 'open', 'connecting'
 		this._pingState = {
 			latestPong: 0,
+			latestMessage: 0,
+			pinging: false,
 		}
 		this.normalClose = false
 		this._socket.addEventListener('open', () => {
@@ -120,15 +122,18 @@ export default class RohrpostClient extends EventEmitter {
 
 	_ping (starterSocket) { // we need a ref to the socket to detect reconnects and stop the old ping loop
 		const timestamp = Date.now()
-		const payload = {
-			type: 'ping',
-			id: timestamp
+		if (!this._pingState.pinging) {
+			const payload = {
+				type: 'ping',
+				id: timestamp
+			}
+			this._send(JSON.stringify(payload))
+			this.emit('ping')
+			this._pingState.pinging = true
 		}
-		this._send(JSON.stringify(payload))
-		this.emit('ping')
 		setTimeout(() => {
 			if (this._socket.readyState !== 1 || this._socket !== starterSocket) return // looping on old socket, abort
-			if (timestamp > this._pingState.latestPong) // we received no pong after the last ping
+			if (timestamp > this._pingState.latestMessage) // we received no response after the last ping
 				this._handlePingTimeout()
 			else this._ping(starterSocket)
 		}, this._config.pingInterval)
@@ -148,6 +153,7 @@ export default class RohrpostClient extends EventEmitter {
 	}
 
 	_processMessage (rawMessage) {
+		this._pingState.latestMessage = Date.now()
 		const message = JSON.parse(rawMessage.data)
 		this.emit('message', message)
 		if (message.error) {
@@ -178,6 +184,7 @@ export default class RohrpostClient extends EventEmitter {
 
 	_handlePong (message) {
 		this.emit('pong')
+		this._pingState.pinging = false
 		this._pingState.latestPong = Date.now()
 	}
 

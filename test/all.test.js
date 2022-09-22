@@ -124,4 +124,31 @@ describe('Rohrpost Client', () => {
 		server.killAll()
 		client.unsubscribe({type: 'collection', id: 52}).then(done)
 	})
+	it('should not send overlapping pings', (done) => {
+		server.messages = []
+		server.drop = true
+		client = new RohrpostClient(WS_URL, {pingInterval: 100, token: 'hunter2'})
+		client.on('error', (error) => expect(error).to.equal('no saved request with id: TRASH'))
+		// Send messages to keep client happy, even though we withhold the pong
+		setTimeout(server.sendTrashMessageType, 50)
+		setTimeout(server.sendTrashMessageType, 150)
+		setTimeout(() => {
+			// Client has not sent more pings
+			expect(server.messages).to.have.length(1)
+			expect(server.messages[0].type).to.equal('ping')
+			expect(client.socketState).to.equal('open')
+			server.sendToAll({type: 'pong', id: 1})
+		}, 250)
+		setTimeout(() => {
+			// Client resumes pinging after pong received
+			expect(server.messages).to.have.length(2)
+			expect(server.messages[1].type).to.equal('ping')
+			expect(client.socketState).to.equal('open')
+			// check it actually does time out
+			client.once('closed', () => {
+				client.close()
+				done()
+			})
+		}, 350)
+	})
 })
