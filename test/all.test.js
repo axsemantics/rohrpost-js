@@ -151,4 +151,22 @@ describe('Rohrpost Client', () => {
 			})
 		}, 350)
 	})
+	it('should settle all promises on close', (done) => {
+		client = new RohrpostClient(WS_URL, {pingInterval: 50000, token: 'hunter2'})
+		client.once('open', () => {
+			server.drop = true
+			const a = client.subscribe('foo')
+			const b = client.unsubscribe('bar')
+			const c = client.call('baz')
+			client.close()
+			Promise.allSettled([a, b, c]).then(results => {
+				expect(results).eql([
+					{ status: 'rejected', reason: 'Socket was closed' },
+					{ status: 'fulfilled', value: undefined },  // "got your wish"
+					{ status: 'rejected', reason: 'Socket was closed' }
+				])
+				done()
+			})
+		})
+	})
 })
