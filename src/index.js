@@ -143,7 +143,6 @@ export default class RohrpostClient extends EventEmitter {
 
 	_handlePingTimeout () {
 		this._socket.close()
-		this.emit('closed')
 	}
 
 	_send (payload) {
