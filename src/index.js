@@ -50,7 +50,7 @@ export default class RohrpostClient extends EventEmitter {
 	unsubscribe (group) {
 		if (this.socketState !== 'open') {
 			// Connection is down anyway, just cancel subscription
-			delete this._subscriptions[group]
+			delete this._subscriptions[`${group.type}-${group.id}`]
 			return Promise.resolve()
 		}
 		const { id, promise } = this._createRequest('unsubscribe', group)
@@ -258,7 +258,7 @@ export default class RohrpostClient extends EventEmitter {
 		if (this._openRequests != null) {
 			for (const request of Object.values(this._openRequests)) {
 				if (request.type === 'unsubscribe') {
-					delete this._subscriptions[request.args]
+					delete this._subscriptions[`${request.args.type}-${request.args.id}`]
 					request.deferred.resolve()
 				} else {
 					request.deferred.reject(reason)
