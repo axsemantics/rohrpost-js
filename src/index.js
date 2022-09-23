@@ -20,6 +20,7 @@ export default class RohrpostClient extends EventEmitter {
 		this._config = Object.assign(defaultConfig, config)
 		this._url = url
 		this._subscriptions = {}
+		this._pendingSubscribes = []
 		this._createSocket()
 	}
 
@@ -110,6 +111,7 @@ export default class RohrpostClient extends EventEmitter {
 			this.socketState = 'closed'
 			this.emit('closed') // why past tense? because the socket is already closed and not currently closing
 			if (!this._normalClose) {
+				this._savePendingSubscribeRequests()
 				setTimeout(() => {
 					this.emit('reconnecting')
 					this._createSocket()
@@ -191,6 +193,18 @@ export default class RohrpostClient extends EventEmitter {
 	_resubscribe () {
 		for (let args of Object.values(this._subscriptions)) {
 			this.subscribe(args)
+		}
+		for (const request of this._pendingSubscribes) {
+			this.subscribe(request.args).then(request.deferred.resolve, request.deferred.reject)
+		}
+		this._pendingSubscribes.splice(0)
+	}
+
+	_savePendingSubscribeRequests () {
+		const pendingSubscribes = Object.entries(this._openRequests).filter(([id, request]) => request.type === 'subscribe')
+		for (const [id, request] of pendingSubscribes) {
+			delete this._openRequests[id]
+			this._pendingSubscribes.push(request)
 		}
 	}
 
