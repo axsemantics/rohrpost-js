@@ -97,6 +97,28 @@ describe('Rohrpost Client', () => {
 	it('should unsubscribe', (done) => {
 		client.unsubscribe({type: 'collection', id: 52}).then(done)
 	})
+	it('should resubmit pending subscribes on reconnect', (done) => {
+		server.drop = true
+		a = client.subscribe({type: 'test', id: 'A'})
+		b = client.subscribe({type: 'test', id: 'B'})
+		c = client.unsubscribe({type: 'collection', id: 52})
+		client.once('closed', () => {
+			server.drop = false
+			setTimeout(() => {
+				expect(client._pendingSubscribes).have.length(2)
+			}, 1)
+			Promise.allSettled([a, b, c]).then(results => {
+				expect(results).eql([
+  				{ status: 'fulfilled', value: { group: 'test-A' } },
+  				{ status: 'fulfilled', value: { group: 'test-B' } },
+  				{ status: 'fulfilled', value: undefined }
+				])
+				expect(client._subscriptions).have.keys('test-A', 'test-B')
+				expect(client._pendingSubscribes).have.length(0)
+				done()
+			})
+		})
+	}).timeout(5000)
 	it('should close when server closes', (done) => {
 		server.killAll()
 		client.once('closed', done)
