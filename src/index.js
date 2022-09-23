@@ -26,10 +26,11 @@ export default class RohrpostClient extends EventEmitter {
 	close () {
 		this._normalClose = true
 		this._socket.close()
+		this._resetPendingRequests('Socket was closed')
 	}
 
 	subscribe (group) {
-		const { id, promise } = this._createRequest(group)
+		const { id, promise } = this._createRequest('subscribe', group)
 		const payload = {
 			type: 'subscribe',
 			id,
@@ -51,7 +52,7 @@ export default class RohrpostClient extends EventEmitter {
 			delete this._subscriptions[group]
 			return Promise.resolve()
 		}
-		const { id, promise } = this._createRequest(group)
+		const { id, promise } = this._createRequest('unsubscribe', group)
 		const payload = {
 			type: 'unsubscribe',
 			id,
@@ -68,7 +69,7 @@ export default class RohrpostClient extends EventEmitter {
 		}
 		Object.assign(options, opts)
 
-		const { id, promise } = this._createRequest()
+		const { id, promise } = this._createRequest('call')
 		const payload = {
 			type: name,
 			id,
@@ -116,8 +117,7 @@ export default class RohrpostClient extends EventEmitter {
 			}
 		})
 		this._socket.addEventListener('message', this._processMessage.bind(this))
-		this._openRequests = {} // save deferred promises from requests waiting for reponse
-		this._nextRequestIndex = 1 // autoincremented rohrpost message id
+		this._resetPendingRequests()
 	}
 
 	_ping (starterSocket) { // we need a ref to the socket to detect reconnects and stop the old ping loop
@@ -224,10 +224,10 @@ export default class RohrpostClient extends EventEmitter {
 	}
 
 	// request - response promise matching
-	_createRequest (args) {
+	_createRequest (type, args) {
 		const id = this._nextRequestIndex++
 		const deferred = defer()
-		this._openRequests[id] = { deferred, args }
+		this._openRequests[id] = { type, deferred, args }
 		return { id, promise: deferred.promise }
 	}
 
@@ -236,8 +236,23 @@ export default class RohrpostClient extends EventEmitter {
 		if (!req) {
 			this.emit('error', `no saved request with id: ${id}`)
 		} else {
-			this._openRequests[id] = undefined
+			delete this._openRequests[id]
 			return req
 		}
+	}
+
+	_resetPendingRequests (reason) {
+		if (this._openRequests != null) {
+			for (const request of Object.values(this._openRequests)) {
+				if (request.type === 'unsubscribe') {
+					delete this._subscriptions[request.args]
+					request.deferred.resolve()
+				} else {
+					request.deferred.reject(reason)
+				}
+			}
+		}
+		this._openRequests = {} // save deferred promises from requests waiting for reponse
+		this._nextRequestIndex = 1 // autoincremented rohrpost message id
 	}
 }
